@@ -1,6 +1,5 @@
 import java.net.*;
 import java.io.*;
-//import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,20 +13,21 @@ public class ClientProfessor {
 
 		try {
 
-			
 			DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+			DataInputStream input = new DataInputStream(socket.getInputStream());
 			ObjectInputStream inputObject = new ObjectInputStream(socket.getInputStream());
-			// Cliente chamando o Servidor - 1 representa o professor
+			
+			/* Cliente que chamou o Servidor - 1 representa o professor */
 			output.write(1);
 
-			System.out.println(" Saudações, professor. Comece a chamada digitando o numero da turma: ");
+			System.out.println(" Olá, professor. Inicie a chamada digitando o numero da turma: ");
 			int numeroTurma = sc.nextInt();
-			// 1) O numero da Turma do aluno
+			/* Numero da Turma que é enviada para o servidor */
 			output.write(numeroTurma);
 
-			System.out.println(new Date() + "  A chamada da turma " + numeroTurma + " foi iniciada... \n\n");
+			System.out.println(input.readUTF());
 
-			System.out.println(" Para finalizar a chamada da turma pressione 0 (zero) \n ");
+			System.out.println(" Para encerrar a chamada da turma pressione 0 (zero) \n ");
 			int encerrar = sc.nextInt();
 
 			while (0 != encerrar) {
@@ -35,29 +35,29 @@ public class ClientProfessor {
 				encerrar = sc.nextInt();
 			}
 
-			// 2) A chamada foi encerrada;
+			/* Envia dados para o servidor encerrar a chamada */
 			output.write(encerrar);
 			output.write(numeroTurma);
 
-			// 3) Alunos que responderam a chamada da turma
+			/* Alunos que responderam a chamada da turma fazendo distinção se nenhum, apenas
+			 um ou vários alunos responderam a chamada */
 
 			ArrayList<Integer> alunosResponderamChamada = new ArrayList<>();
 			alunosResponderamChamada = (ArrayList<Integer>) inputObject.readObject();
 			if (alunosResponderamChamada.isEmpty()) {
-				System.out.println("Nenhum aluno respondeu a chamada da turma");
+				System.out.println("Nenhum aluno respondeu a chamada da turma. \n Segue data e hora da validação da informação: "+ new Date()+".");
 			} else {
 				if (alunosResponderamChamada.size() == 1) {
 					System.out.println("Apenas o aluno de matrícula: " + alunosResponderamChamada.get(0)
-							+ " respondeu a chamada da turma");
+							+ " respondeu a chamada da turma. \n Segue data e hora da validação da informação: "+ new Date()+"." );
 				} else {
-					System.out.println(" Segue lista de matriculas !!! \n");
+					System.out.println("   Segue lista de matriculs !!! \n");
 					for (int i = 0; i < alunosResponderamChamada.size(); i++) {
 						System.out.println((i + 1) + ": " + alunosResponderamChamada.get(i));
-
 					}
 				}
 
-				System.out.println(new Date() + " A Chamada da turma " + numeroTurma + " foi encerrada!!!");
+				System.out.println( " A Chamada da turma " + numeroTurma + " foi encerrada!!! \n Segue data e hora da validação do final da chamada: "+ new Date()+".");
 			}
 		} catch (Exception e) {
 			e.getMessage();

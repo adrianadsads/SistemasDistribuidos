@@ -1,12 +1,9 @@
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Date;
 import java.util.Scanner;
 
 public class ClientAluno {
@@ -22,21 +19,22 @@ public class ClientAluno {
 			DataOutputStream output = new DataOutputStream(socket.getOutputStream());
 			ObjectInputStream inputObject = new ObjectInputStream(socket.getInputStream());
 
-			// O cliente chama o Servidor - 2 representa o aluno
+			/* Cliente que chamou o Servidor - 2 representa o aluno */
 			output.write(2);
 
-			System.out.println(" Caro aluno, informe sua matricula: ");
+			System.out.println(" Prezado aluno, informe sua matricula: ");
 			int matricula = sc.nextInt();
-			System.out.println(" Informe o numero da sua turma: ");
+			System.out.println(" Agora informe o numero da sua turma: ");
 			int numTurma = sc.nextInt();
 
-			// 1) A matricula do Aluno
+			/* 1) Matricula Aluno que será enviada para o servidor */
 			output.write(matricula);
-			// 2) O numero turma do aluno
+			/* 2) Numero turma ue será enviada para o servidor */
 			output.write(numTurma);
 
-			// 3)Averigua se a presença do aluno foi lançada
+			/* 3)Verifica se a presença foi registrada */
 
+			/* Recebe do servidor */
 			int cod = input.read();
 
 			if (1 == cod)

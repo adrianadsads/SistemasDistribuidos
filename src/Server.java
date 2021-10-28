@@ -5,29 +5,17 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Date;
 
 public class Server extends Thread {
 
-	
 	private static ArrayList<ListaPresenca> chamadasAbertas;
-	private Integer matricula;
-	private Integer numTurma;
-
 	private static ArrayList<Integer> turmaAberta;
-	private static ArrayList<Integer> listaDeAlunos;
 
 	private Socket server = null;
-	private DataInputStream input;
-
-	private ObjectOutputStream outputObject;
 
 	public Server(Socket socket) throws IOException {
 		this.server = socket;
-		input = new DataInputStream(socket.getInputStream());
 
 	}
 
@@ -42,13 +30,17 @@ public class Server extends Thread {
 			int cliente = input.read();
 
 			if (1 == cliente) {
-				System.out.println(new Date() + " >>> O Professor foi conectado ao servidor. A turma foi iniciada \n");
+				System.out.println(
+						" O Professor foi conectado ao servidor. A turma foi iniciada \n Segue data e hora da validação da informação: "
+								+ new Date() + ".");
 
 				runClientProfessor(server, input, output, outputObject);
 			}
 
 			else if (2 == cliente) {
-				System.out.println(new Date() + " >>> O Aluno foi conectado ao servidor. \n");
+				System.out
+						.println(" O Aluno foi conectado ao servidor. \n Segue data e hora da validação da informação: "
+								+ new Date() + ".");
 				runClientAluno(server, input, output);
 			}
 
@@ -61,11 +53,10 @@ public class Server extends Thread {
 	public static void main(String[] args) throws IOException, InterruptedException {
 		int portaServer = 35502;
 
-		System.out.println(" Servidor iniciado  na Porta: " + portaServer + " \n Data e hora: " + new Date() + "  \n");
+		System.out.println(" Servidor iniciado  na Porta: " + portaServer + " \n data e hora: " + new Date() + ".  \n");
 
 		System.out.println("  ***** Aguardando conexão dos clientes ***** \n");
 
-		listaDeAlunos = new ArrayList<>();
 		turmaAberta = new ArrayList<>();
 		chamadasAbertas = new ArrayList<>();
 
@@ -92,23 +83,26 @@ public class Server extends Thread {
 	private void runClientAluno(Socket server, DataInputStream inputAluno, DataOutputStream outputAluno) {
 
 		try {
-			// 1) A matricula do aluno
+			/* 1) Matricula aluno recebida do Cliente Aluno */
 			int matricula = inputAluno.read();
 
-			// 2) O numero da Turma
+			/* 2) Numero Turma recebida do Cliente Aluno */
 			int numTurma = inputAluno.read();
 			int codResposta = 0;
 
 			for (int i = 0; i < chamadasAbertas.size(); i++) {
 				if (chamadasAbertas.get(i).getMatricula() == matricula) {
 
-					System.out.println("Essa Matrícula já foi Registrada!!! \n Data e hora da validação da informação: "
-							+ new Date());
+					System.out.println(
+							"Essa Matrícula já foi Registrada!!! \n Segue data e hora da validação da informação: "
+									+ new Date() + ".");
 
+					/* Envia para o Cliente Aluno o codResposta */
 					outputAluno.write(codResposta);
-					outputAluno
-							.writeUTF("Essa Matrícula já foi Registrada!!! \n Data e hora da validação da informação: "
-									+ new Date());
+					/* Saída do do texto para o Cliente Aluno */
+					outputAluno.writeUTF(
+							"Essa Matrícula já foi Registrada!!! \n Segue data e hora da validação da informação: "
+									+ new Date() + ".");
 					return;
 
 				}
@@ -116,30 +110,36 @@ public class Server extends Thread {
 			}
 
 			if (!turmaAberta.contains(numTurma)) {
+				System.out.println(
+						"   Atenção!!! A chamada para essa turma não foi aberta ou já foi finalizada pelo professor!"
+								+ "  \n Segue data e hora da validação da informação: " + new Date() + ".");
 
-				System.out.println("   Atenção!!! A chamada para essa turma não foi aberta! "
-						+ "  \n Segue data e hora da validação da informação: " + new Date());
+				/* Saída do codResposta para o Cliente Aluno */
 				outputAluno.write(codResposta);
 
-				outputAluno.writeUTF("   Atenção!!! A chamada para essa turma não foi aberta! "
-						+ "  \n Segue data e hora da validação da informação: " + new Date());
+				/* Saída do do texto para o Cliente Aluno */
+				outputAluno.writeUTF(
+						"   Atenção!!! A chamada para essa turma não foi aberta ou já foi finalizada pelo professor! "
+								+ "  \n Segue data e hora da validação da informação: " + new Date() + ".");
 				return;
 			}
 
+			/* Cria o objeto aluno com matricula e numTurma */
 			ListaPresenca adicionaAlunoTurma = new ListaPresenca(matricula, numTurma);
 
-			listaDeAlunos.add(matricula);
-
-		
+			/* Modifica o valor de codResposta */
 			codResposta = 1;
+
+			/* Adiciona no array chamadasAbertas o objeto criado acima adiconando o aluno */
 			chamadasAbertas.add(adicionaAlunoTurma);
-			
+			/* Envia o codResposta para o cliente Aluno */
 			outputAluno.write(codResposta);
 			System.out.println("  Presença Registrada com Sucesso!!! \n  Segue data e hora da validação da presença: "
-					+ new Date());
-			outputAluno.writeUTF("  Presença Registrada com Sucesso!!! \n  Segue data e hora da validação da presença: "
-					+ new Date());
+					+ new Date() + ".");
 
+			/* Envia o texto para o aluno */
+			outputAluno.writeUTF("  Presença Registrada com Sucesso!!! \n  Segue data e hora da validação da presença: "
+					+ new Date() + ".");
 
 		} catch (IOException e) {
 			e.getMessage();
@@ -153,22 +153,33 @@ public class Server extends Thread {
 			ObjectOutputStream outputObject) throws IOException {
 
 		int turma = -1;
-		// 1) Numero da Turma
+		/* Receber do Cliente Professor o Número da Turma */
 		turma = input.read();
 
+		/* Adiciona a turma recebida pelo Cliente professor */
 		if (turma != -1) {
 			turmaAberta.add(turma);
 
-			System.out.println(new Date() + " >>> A chamada da turma " + turma + " foi aberta pelo professor. \n");
+			output.writeUTF(" A chamada da turma " + turma
+					+ " foi aberta pelo professor. \n Segue data e hora da validação da abertura da chamada "
+					+ new Date() + ".");
+			System.out.println(" A chamada da turma " + turma
+					+ " foi aberta pelo professor. \n Segue data e hora da validação da abertura da chamada "
+					+ new Date() + ".");
 
-			// 2) A chamada foi encerrada pelo professor;
+			/* Recebe os dados para finalizar a Chamada */
 			Integer finalizar = input.read();
 			Integer numTurma = input.read();
+
+			/*
+			 * Array que recebera a lista de matrículas dos alunos que responderam a lista
+			 * da chamada
+			 */
 
 			ArrayList<Integer> dados;
 			dados = new ArrayList<>();
 
-			// 3) Envia uma lista com a matricula dos alunos que responderam a chamada
+			/* Checagem para adicionar no array dados as matriculas */
 
 			if (finalizar == 0) {
 
@@ -180,18 +191,40 @@ public class Server extends Thread {
 					}
 				}
 
+				/*
+				 * Envia o objeto para o Cliente Professor com o array de matrículas dos alunos
+				 * que responderam a chamada
+				 */
 				outputObject.writeObject(dados);
 
+				/* remove a turma que foi finalizada no array turmaAberta */
 				turmaAberta.remove(numTurma);
 
-				System.out.println(new Date() + " >>> A chamada da turma " + turma + " foi encerrado. \n");
+				/*
+				 * checa as matrículas que responderam a chamada comparando com numTurma e
+				 * remove o objeto do array
+				 */
+
+				for (int i = 0; i < chamadasAbertas.size(); i++) {
+
+					if (chamadasAbertas.get(i).getNumTurma().equals(numTurma)) {
+
+						chamadasAbertas.remove(i);
+						i = i - 1;
+					}
+				}
+
+				System.out.println(" A chamada da turma " + turma
+						+ " foi encerrada. \n Segue data e hora da validação da informação: " + new Date() + ".");
 
 			}
 
 		} else {
 
-			System.out.println(new Date() + " >>> O numero da turma informada é inválida.");
+			System.out.println(
+					" Numero da turma inválida. \n Segue data e hora da validação da informação: " + new Date() + ".");
 		}
 
 	}
+
 }
